@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙界公务员 - 在线阅读</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.8;
+        }
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        /* 章节列表 */
+        .chapter-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .chapter-item {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+        .chapter-item:hover {
+            background: #3498db;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        .chapter-item.active {
+            background: #2ecc71;
+            color: #fff;
+        }
+        
+        /* 阅读器 */
+        .reader {
+            display: none;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .reader.active { display: block; }
+        .reader-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .reader-meta {
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .reader-content {
+            font-size: 1.1rem;
+            line-height: 2;
+            text-align: justify;
+        }
+        .reader-content p {
+            margin-bottom: 1.5rem;
+            text-indent: 2em;
+        }
+        
+        /* 导航按钮 */
+        .reader-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+        .nav-btn-primary {
+            background: #3498db;
+            color: #fff;
+        }
+        .nav-btn-primary:hover { background: #2980b9; }
+        .nav-btn-secondary {
+            background: #ecf0f1;
+            color: #333;
+        }
+        .nav-btn-secondary:hover { background: #bdc3c7; }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .back-btn {
+            background: #ecf0f1;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .back-btn:hover { background: #bdc3c7; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .reader { padding: 1.5rem; }
+            .chapter-list { grid-template-columns: repeat(2, 1fr); }
+            .reader-nav { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 onclick="showList()">📖 修仙界公务员</h1>
+    </header>
+    
+    <div class="container">
+        <!-- 章节列表 -->
+        <div id="chapterList">
+            <h2 style="margin-top: 2rem;">目录</h2>
+            <div class="chapter-list" id="chapters"></div>
+        </div>
+        
+        <!-- 阅读器 -->
+        <div class="reader" id="reader">
+            <button class="back-btn" onclick="showList()">← 返回目录</button>
+            <h1 class="reader-title" id="readerTitle"></h1>
+            <div class="reader-meta" id="readerMeta"></div>
+            <div class="reader-content" id="readerContent"></div>
+            <div class="reader-nav">
+                <button class="nav-btn nav-btn-secondary" id="prevBtn" onclick="prevChapter()">上一章</button>
+                <button class="nav-btn nav-btn-primary" id="nextBtn" onclick="nextChapter()">下一章</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chapters = [];
+        let currentIndex = -1;
+
+        async function loadChapters() {
+            const res = await fetch('/api/chapters');
+            const list = await res.json();
+            // 只保留正文章节 (01-第 1 章.md 到 30-第 30 章.md)
+            const realChapters = list.filter(c => /^\d+-第\d+章\.md$/.test(c.file));
+            chapters.push(...realChapters);
+            
+            const container = document.getElementById('chapters');
+            container.innerHTML = realChapters.map((c, i) => `
+                <div class="chapter-item" onclick="loadChapter(${i})">${c.title}</div>
+            `).join('');
+        }
+
+        async function loadChapter(index) {
+            if (index < 0 || index >= chapters.length) return;
+            currentIndex = index;
+            const chapter = chapters[index];
+            
+            document.getElementById('chapterList').style.display = 'none';
+            document.getElementById('reader').classList.add('active');
+            
+            document.getElementById('readerTitle').textContent = chapter.title;
+            document.getElementById('readerMeta').textContent = `第${chapter.num}章`;
+            
+            const res = await fetch(`/api/chapter/${chapter.file}`);
+            const data = await res.json();
+            document.getElementById('readerContent').innerHTML = data.content || '<p>内容为空</p>';
+            
+            updateNav();
+            window.scrollTo(0, 0);
+        }
+
+        function showList() {
+            document.getElementById('chapterList').style.display = 'block';
+            document.getElementById('reader').classList.remove('active');
+        }
+
+        function updateNav() {
+            document.getElementById('prevBtn').disabled = currentIndex <= 0;
+            document.getElementById('nextBtn').disabled = currentIndex >= chapters.length - 1;
+        }
+
+        function prevChapter() {
+            if (currentIndex > 0) loadChapter(currentIndex - 1);
+        }
+
+        function nextChapter() {
+            if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1);
+        }
+
+        // 键盘导航
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('reader').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') prevChapter();
+                if (e.key === 'ArrowRight') nextChapter();
+                if (e.key === 'Escape') showList();
+            }
+        });
+
+        loadChapters();
+    </script>
+</body>
+</html>
