@@ -29,28 +29,40 @@
         
         /* 章节列表 */
         .chapter-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
             margin-top: 2rem;
         }
         .chapter-item {
             background: #fff;
-            padding: 1rem;
-            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
             border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         .chapter-item:hover {
             background: #3498db;
             color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
         }
         .chapter-item.active {
             background: #2ecc71;
             color: #fff;
+        }
+        .chapter-num {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            min-width: 60px;
+        }
+        .chapter-item:hover .chapter-num,
+        .chapter-item.active .chapter-num {
+            opacity: 1;
         }
         
         /* 阅读器 */
@@ -137,7 +149,8 @@
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             .reader { padding: 1.5rem; }
-            .chapter-list { grid-template-columns: repeat(2, 1fr); }
+            .chapter-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+            .chapter-num { font-size: 0.75rem; }
             .reader-nav { flex-direction: column; }
         }
     </style>
@@ -169,23 +182,48 @@
 
     <script>
         const CHAPTERS = [
-            { num: 1, title: '第 1 章 加班猝死，穿越成仙', file: '00-前三章合集.md' },
-            { num: 2, title: '第 2 章 第一卷大纲', file: '00-第一卷大纲.md' },
-            { num: 3, title: '第 3 章 金手指：体制保护伞', file: '01-金手指：体制保护伞.md' },
-            { num: 4, title: '第 4 章 报道：修仙界也要填表格', file: '02-报道：修仙界也要填表格.md' },
-            { num: 5, title: '第 5 章 同事：社恐剑修与话痨丹修', file: '03-同事：社恐剑修与话痨丹修.md' },
-            { num: 6, title: '第 6 章 第一次外勤：调解妖兽纠纷', file: '04-第一次外勤：调解妖兽纠纷.md' },
-            { num: 7, title: '第 7 章 KPI 考核：抓不到妖怪就扣钱', file: '05-KPI 考核：抓不到妖怪就扣钱.md' },
-            { num: 8, title: '第 8 章 摸鱼被发现，领导请喝茶', file: '06-摸鱼被发现，领导请喝茶.md' },
-            { num: 9, title: '第 9 章 修仙界也内卷：加班文化', file: '07-修仙界也内卷：加班文化.md' },
-            { num: 10, title: '第 10 章 第一卷总结', file: '08-第一卷总结.md' }
+            { num: 1, title: '加班猝死，穿越成仙', file: '00-前三章合集.md' },
+            { num: 2, title: '第一卷大纲', file: '00-第一卷大纲.md' },
+            { num: 3, title: '加班猝死穿越成仙', file: '01-加班猝死穿越成仙.md' },
+            { num: 4, title: '第一天上班', file: '02-第一天上班.md' },
+            { num: 5, title: '仙帝来渡劫', file: '03-仙帝来渡劫.md' },
+            { num: 6, title: '加急费', file: '04-加急费.md' },
+            { num: 7, title: '第一次加班', file: '05-第一次加班.md' },
+            { num: 8, title: '造假案', file: '06-造假案.md' },
+            { num: 9, title: '树敌', file: '07-树敌.md' },
+            { num: 10, title: '人情世故', file: '08-人情世故.md' },
+            { num: 11, title: '刘大伟的挑战', file: '09-刘大伟的挑战.md' },
+            { num: 12, title: '第一次升职', file: '10-第一次升职.md' },
+            { num: 13, title: '关系户', file: '11-关系户.md' },
+            { num: 14, title: '苏媚儿登场', file: '12-苏媚儿登场.md' },
+            { num: 15, title: '功德考核', file: '13-功德考核.md' },
+            { num: 16, title: '林清雪来访', file: '14-林清雪来访.md' },
+            { num: 17, title: '第一次聚会', file: '15-第一次聚会.md' },
+            { num: 18, title: '功法审核漏洞', file: '16-功法审核漏洞.md' },
+            { num: 19, title: '监察司来人', file: '17-监察司来人.md' },
+            { num: 20, title: '王富贵的秘密', file: '18-王富贵的秘密.md' },
+            { num: 21, title: '刘大伟服软', file: '19-刘大伟服软.md' },
+            { num: 22, title: '第一次外勤', file: '20-第一次外勤.md' },
+            { num: 23, title: '钱通神的注意', file: '21-钱通神的注意.md' },
+            { num: 24, title: '张小美的秘密', file: '22-张小美的秘密.md' },
+            { num: 25, title: '陈老实被欺负', file: '23-陈老实被欺负.md' },
+            { num: 26, title: '第一次收礼', file: '24-第一次收礼.md' },
+            { num: 27, title: '年度考核', file: '25-年度考核.md' },
+            { num: 28, title: '晋升考核', file: '26-晋升考核.md' },
+            { num: 29, title: '有人搞事', file: '27-有人搞事.md' },
+            { num: 30, title: '自证清白', file: '28-自证清白.md' },
+            { num: 31, title: '钱通神的警告', file: '29-钱通神的警告.md' },
+            { num: 32, title: '第一卷尾声', file: '30-第一卷尾声.md' }
         ];
         let currentIndex = -1;
 
         function loadChapters() {
             const container = document.getElementById('chapters');
             container.innerHTML = CHAPTERS.map((c, i) => `
-                <div class="chapter-item" onclick="loadChapter(${i})">${c.title}</div>
+                <div class="chapter-item" onclick="loadChapter(${i})">
+                    <span class="chapter-num">第${c.num}章</span>
+                    <span class="chapter-title">${c.title}</span>
+                </div>
             `).join('');
         }
 
@@ -197,14 +235,19 @@
             document.getElementById('chapterList').style.display = 'none';
             document.getElementById('reader').classList.add('active');
             
-            document.getElementById('readerTitle').textContent = chapter.title;
-            document.getElementById('readerMeta').textContent = `第${chapter.num}章`;
+            document.getElementById('readerTitle').textContent = `第${chapter.num}章 ${chapter.title}`;
+            document.getElementById('readerMeta').textContent = `修仙界公务员 · 第一卷`;
             
             try {
                 const res = await fetch(`第一卷/${chapter.file}`);
+                if (!res.ok) throw new Error('File not found');
                 const text = await res.text();
-                const html = text.split('\n').filter(line => line.trim()).map(p => `<p>${p}</p>`).join('\n');
-                document.getElementById('readerContent').innerHTML = html || '<p>内容为空</p>';
+                // 移除 Markdown 标题行（以# 开头的行）
+                const content = text.split('\n')
+                    .filter(line => !line.startsWith('#') && line.trim())
+                    .map(p => `<p>${p}</p>`)
+                    .join('\n');
+                document.getElementById('readerContent').innerHTML = content || '<p>内容为空</p>';
             } catch (e) {
                 document.getElementById('readerContent').innerHTML = '<p>加载失败，请检查文件路径</p>';
             }
@@ -220,7 +263,7 @@
 
         function updateNav() {
             document.getElementById('prevBtn').disabled = currentIndex <= 0;
-            document.getElementById('nextBtn').disabled = currentIndex >= chapters.length - 1;
+            document.getElementById('nextBtn').disabled = currentIndex >= CHAPTERS.length - 1;
         }
 
         function prevChapter() {
@@ -228,7 +271,7 @@
         }
 
         function nextChapter() {
-            if (currentIndex < chapters.length - 1) loadChapter(currentIndex + 1);
+            if (currentIndex < CHAPTERS.length - 1) loadChapter(currentIndex + 1);
         }
 
         // 键盘导航
