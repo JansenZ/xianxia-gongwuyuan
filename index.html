@@ -168,26 +168,31 @@
     </div>
 
     <script>
-        const chapters = [];
+        const CHAPTERS = [
+            { num: 1, title: '第 1 章 加班猝死，穿越成仙', file: '00-前三章合集.md' },
+            { num: 2, title: '第 2 章 第一卷大纲', file: '00-第一卷大纲.md' },
+            { num: 3, title: '第 3 章 金手指：体制保护伞', file: '01-金手指：体制保护伞.md' },
+            { num: 4, title: '第 4 章 报道：修仙界也要填表格', file: '02-报道：修仙界也要填表格.md' },
+            { num: 5, title: '第 5 章 同事：社恐剑修与话痨丹修', file: '03-同事：社恐剑修与话痨丹修.md' },
+            { num: 6, title: '第 6 章 第一次外勤：调解妖兽纠纷', file: '04-第一次外勤：调解妖兽纠纷.md' },
+            { num: 7, title: '第 7 章 KPI 考核：抓不到妖怪就扣钱', file: '05-KPI 考核：抓不到妖怪就扣钱.md' },
+            { num: 8, title: '第 8 章 摸鱼被发现，领导请喝茶', file: '06-摸鱼被发现，领导请喝茶.md' },
+            { num: 9, title: '第 9 章 修仙界也内卷：加班文化', file: '07-修仙界也内卷：加班文化.md' },
+            { num: 10, title: '第 10 章 第一卷总结', file: '08-第一卷总结.md' }
+        ];
         let currentIndex = -1;
 
-        async function loadChapters() {
-            const res = await fetch('/api/chapters');
-            const list = await res.json();
-            // 只保留正文章节 (01-第 1 章.md 到 30-第 30 章.md)
-            const realChapters = list.filter(c => /^\d+-第\d+章\.md$/.test(c.file));
-            chapters.push(...realChapters);
-            
+        function loadChapters() {
             const container = document.getElementById('chapters');
-            container.innerHTML = realChapters.map((c, i) => `
+            container.innerHTML = CHAPTERS.map((c, i) => `
                 <div class="chapter-item" onclick="loadChapter(${i})">${c.title}</div>
             `).join('');
         }
 
         async function loadChapter(index) {
-            if (index < 0 || index >= chapters.length) return;
+            if (index < 0 || index >= CHAPTERS.length) return;
             currentIndex = index;
-            const chapter = chapters[index];
+            const chapter = CHAPTERS[index];
             
             document.getElementById('chapterList').style.display = 'none';
             document.getElementById('reader').classList.add('active');
@@ -195,9 +200,14 @@
             document.getElementById('readerTitle').textContent = chapter.title;
             document.getElementById('readerMeta').textContent = `第${chapter.num}章`;
             
-            const res = await fetch(`/api/chapter/${chapter.file}`);
-            const data = await res.json();
-            document.getElementById('readerContent').innerHTML = data.content || '<p>内容为空</p>';
+            try {
+                const res = await fetch(`第一卷/${chapter.file}`);
+                const text = await res.text();
+                const html = text.split('\n').filter(line => line.trim()).map(p => `<p>${p}</p>`).join('\n');
+                document.getElementById('readerContent').innerHTML = html || '<p>内容为空</p>';
+            } catch (e) {
+                document.getElementById('readerContent').innerHTML = '<p>加载失败，请检查文件路径</p>';
+            }
             
             updateNav();
             window.scrollTo(0, 0);
